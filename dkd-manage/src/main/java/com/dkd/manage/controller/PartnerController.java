@@ -2,6 +2,9 @@ package com.dkd.manage.controller;
 
 import java.util.List;
 import javax.servlet.http.HttpServletResponse;
+
+import com.dkd.common.utils.SecurityUtils;
+import com.dkd.manage.domain.vo.PartnerVo;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -37,14 +40,14 @@ public class PartnerController extends BaseController
     /**
      * 查询合作商管理列表
      */
-    @PreAuthorize("@ss.hasPermi('manage:partner:list')")
-    @GetMapping("/list")
-    public TableDataInfo list(Partner partner)
-    {
-        startPage();
-        List<Partner> list = partnerService.selectPartnerList(partner);
-        return getDataTable(list);
-    }
+//    @PreAuthorize("@ss.hasPermi('manage:partner:list')")
+//    @GetMapping("/list")
+//    public TableDataInfo list(Partner partner)
+//    {
+//        startPage();
+//        List<Partner> list = partnerService.selectPartnerList(partner);
+//        return getDataTable(list);
+//    }
 
     /**
      * 导出合作商管理列表
@@ -100,5 +103,32 @@ public class PartnerController extends BaseController
     public AjaxResult remove(@PathVariable Long[] ids)
     {
         return toAjax(partnerService.deletePartnerByIds(ids));
+    }
+
+    /**
+     * 查询合作商管理列表
+     */
+    @PreAuthorize("@ss.hasPermi('manage:partner:list')")
+    @GetMapping("/list")
+    public TableDataInfo list(Partner partner) {
+        startPage();
+        List<PartnerVo> voList = partnerService.selectPartnerVoList(partner);
+        return getDataTable(voList);
+    }
+
+    /**
+     * 重置合作商密码
+     */
+    @PreAuthorize("@ss.hasPermi('manage:partner:edit')")
+    @Log(title = "重置合作商密码", businessType = BusinessType.UPDATE)
+    @PutMapping("/resetPwd/{id}")
+    public AjaxResult resetPwd(@PathVariable Long id) {
+        // 1.接收请求参数
+        // 2.创建合作商对象
+        Partner partner = new Partner();
+        partner.setId(id);
+        partner.setPassword(SecurityUtils.encryptPassword("123456"));//设置加密衙的初始密码
+        // 3.调用service更新密码
+        return toAjax(partnerService.updatePartner(partner));
     }
 }
